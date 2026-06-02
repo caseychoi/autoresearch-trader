@@ -12,6 +12,11 @@ SYMBOLS = [
     "XRP/USD",  # XRP
     "ETH/USD",  # Ethereum
     "CBRS",     # Centric Brands (if invalid, API will skip)
+    "QQQ",      # 
+    "AMZN",     # 
+    "CEG",      # 
+    "CRCL",     #  
+    "DELL",     #  
     "GS"        # Goldman Sachs
 ]
 
