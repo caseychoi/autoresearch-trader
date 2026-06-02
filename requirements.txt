@@ -5,3 +5,6 @@ alpaca-py==0.21.0
 python-dotenv==1.0.1
 streamlit==1.35.0
 apscheduler==3.10.4
+python-telegram-bot[job-queue]
+alpaca-trade-api
+pytz
