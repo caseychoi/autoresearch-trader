@@ -218,6 +218,21 @@ async def daily_report(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await context.bot.send_message(chat_id=MY_CHAT_ID, text=f"❌ Failed to generate Daily Report: {e}")
 
+async def scheduled_trading_job(context: ContextTypes.DEFAULT_TYPE):
+    """Runs daily at 3:40 PM EST (Mon-Fri) to execute the main portfolio trading algorithm."""
+    global TRADING_PAUSED
+    if TRADING_PAUSED:
+        await context.bot.send_message(chat_id=MY_CHAT_ID, text="⛔ *Scheduled Trading Skipped:*\nSystem is currently PAUSED.", parse_mode="Markdown")
+        return
+        
+    await context.bot.send_message(chat_id=MY_CHAT_ID, text="⚙️ *Executing Scheduled Portfolio Trading...*", parse_mode="Markdown")
+    try:
+        from live_trader import run_portfolio_trading
+        await asyncio.to_thread(run_portfolio_trading)
+        await context.bot.send_message(chat_id=MY_CHAT_ID, text="✅ *Scheduled Trading Completed Successfully.*", parse_mode="Markdown")
+    except Exception as e:
+        await context.bot.send_message(chat_id=MY_CHAT_ID, text=f"❌ *Error During Scheduled Trading:*\n\n{e}", parse_mode="Markdown")
+
 # --- Init & Run ---
 
 async def post_init(application: Application):
@@ -256,6 +271,10 @@ def main():
     est = pytz.timezone('US/Eastern')
     target_time = datetime.time(hour=16, minute=5, tzinfo=est)
     app.job_queue.run_daily(daily_report, time=target_time, days=(0, 1, 2, 3, 4, 5, 6))
+    
+    # 3. Scheduled Portfolio Trading at 3:40 PM EST (Mon-Fri)
+    trade_time = datetime.time(hour=15, minute=40, tzinfo=est)
+    app.job_queue.run_daily(scheduled_trading_job, time=trade_time, days=(0, 1, 2, 3, 4))
     
     print("Bot is polling and background tasks are running!", flush=True)
     app.run_polling()
