@@ -133,7 +133,7 @@ async def buy_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Poll for fill status
         for _ in range(15):
             await asyncio.sleep(1)
-            order_status = await asyncio.to_thread(alpaca.get_order_by_id, order.id)
+            order_status = await asyncio.to_thread(alpaca.get_order, order.id)
             if order_status.status == 'filled':
                 avg_price = float(order_status.filled_avg_price) if order_status.filled_avg_price else 0.0
                 await update.message.reply_text(f"✅ *BUY Order Filled!*\n\nBought {order_status.filled_qty} shares of {symbol} at avg price ${avg_price:.2f}", parse_mode="Markdown")
@@ -178,7 +178,7 @@ async def sell_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Poll for fill status
         for _ in range(15):
             await asyncio.sleep(1)
-            order_status = await asyncio.to_thread(alpaca.get_order_by_id, order.id)
+            order_status = await asyncio.to_thread(alpaca.get_order, order.id)
             if order_status.status == 'filled':
                 avg_price = float(order_status.filled_avg_price) if order_status.filled_avg_price else 0.0
                 await update.message.reply_text(f"✅ *SELL Order Filled!*\n\nSold {order_status.filled_qty} shares of {symbol} at avg price ${avg_price:.2f}", parse_mode="Markdown")
