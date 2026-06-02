@@ -128,7 +128,22 @@ async def buy_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             type='market',
             time_in_force='gtc'
         )
-        await update.message.reply_text(f"✅ *BUY Order Submitted!*\n\nSymbol: {symbol}\nQuantity: {qty}\nType: Market Buy", parse_mode="Markdown")
+        await update.message.reply_text(f"⏳ *BUY Order Submitted!*\n\nSymbol: {symbol}\nQuantity: {qty}\nType: Market Buy\n\n_Waiting for execution..._", parse_mode="Markdown")
+        
+        # Poll for fill status
+        for _ in range(15):
+            await asyncio.sleep(1)
+            order_status = await asyncio.to_thread(alpaca.get_order_by_id, order.id)
+            if order_status.status == 'filled':
+                avg_price = float(order_status.filled_avg_price) if order_status.filled_avg_price else 0.0
+                await update.message.reply_text(f"✅ *BUY Order Filled!*\n\nBought {order_status.filled_qty} shares of {symbol} at avg price ${avg_price:.2f}", parse_mode="Markdown")
+                return
+            elif order_status.status in ['canceled', 'rejected', 'expired']:
+                await update.message.reply_text(f"⚠️ *Order {order_status.status.capitalize()}*", parse_mode="Markdown")
+                return
+                
+        await update.message.reply_text("⏱️ *Order Pending*\nIt is taking longer than usual to fill (market may be closed). It will execute later.", parse_mode="Markdown")
+        
     except Exception as e:
         await update.message.reply_text(f"❌ *Failed to submit BUY order.*\n\nError: {str(e)}", parse_mode="Markdown")
 
@@ -158,7 +173,22 @@ async def sell_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             type='market',
             time_in_force='gtc'
         )
-        await update.message.reply_text(f"✅ *SELL Order Submitted!*\n\nSymbol: {symbol}\nQuantity: {qty}\nType: Market Sell", parse_mode="Markdown")
+        await update.message.reply_text(f"⏳ *SELL Order Submitted!*\n\nSymbol: {symbol}\nQuantity: {qty}\nType: Market Sell\n\n_Waiting for execution..._", parse_mode="Markdown")
+        
+        # Poll for fill status
+        for _ in range(15):
+            await asyncio.sleep(1)
+            order_status = await asyncio.to_thread(alpaca.get_order_by_id, order.id)
+            if order_status.status == 'filled':
+                avg_price = float(order_status.filled_avg_price) if order_status.filled_avg_price else 0.0
+                await update.message.reply_text(f"✅ *SELL Order Filled!*\n\nSold {order_status.filled_qty} shares of {symbol} at avg price ${avg_price:.2f}", parse_mode="Markdown")
+                return
+            elif order_status.status in ['canceled', 'rejected', 'expired']:
+                await update.message.reply_text(f"⚠️ *Order {order_status.status.capitalize()}*", parse_mode="Markdown")
+                return
+                
+        await update.message.reply_text("⏱️ *Order Pending*\nIt is taking longer than usual to fill (market may be closed). It will execute later.", parse_mode="Markdown")
+        
     except Exception as e:
         await update.message.reply_text(f"❌ *Failed to submit SELL order.*\n\nError: {str(e)}", parse_mode="Markdown")
 
